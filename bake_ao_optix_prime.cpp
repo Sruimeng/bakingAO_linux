@@ -64,7 +64,7 @@ namespace
 		// For sharing identical buffers between Models
 		std::map< float*, Buffer<float3>* > unique_vertex_buffers;
 		std::map< int*, Buffer<int3>* > unique_index_buffers;
-		
+
 		std::vector<float> vetix;
 		const auto model_offset = models.size();
 		models.reserve(models.size() + meshes.size());
@@ -132,6 +132,7 @@ namespace
 		return (x + y - 1) / y;
 	}
 }
+
 
 void bake::ao_optix_prime(
 	std::vector<uautil::Mesh> blockers,

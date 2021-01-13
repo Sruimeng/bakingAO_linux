@@ -65,7 +65,11 @@ float3 operator*(const optix::Matrix4x4& mat, const float3& v)
 	return make_float3(mat * make_float4(v, 1.0f));
 }
 
-
+struct Angle
+{
+	std::size_t order;//˳��
+	std::size_t tri_idx;
+};
 
 void sample_triangle(const optix::Matrix4x4& xform, const optix::Matrix4x4& xform_invtrans, const float3** verts, const float3** normals,
 	const size_t tri_idx, const size_t tri_sample_count, const double tri_area, const unsigned base_seed, const float extra_offset,
@@ -160,6 +164,26 @@ private:
 const float3* get_vertex(const float* v, const unsigned stride_bytes, const int index)
 {
 	return reinterpret_cast<const float3*>(reinterpret_cast<const unsigned char*>(v) + index * stride_bytes);
+}
+
+const float get_cos(const size_t order, const float3& v0, const float3& v1, const float3& v2) {
+	float angle_cos = 0.0f;
+	switch (order)
+	{
+	case 0:
+
+		angle_cos =std::acosf( dot(normalize( v1 - v0), normalize( v2 - v0)));
+		break;
+	case 1:
+		angle_cos = std::acosf(dot(normalize(v0 - v1), normalize(v2 - v1)));
+		break;
+	case 2:
+		angle_cos = std::acosf(dot(normalize(v0 - v2), normalize(v1 - v2)));
+		break;
+	default:
+		break;
+	}
+	return angle_cos;
 }
 
 void sample_instance(

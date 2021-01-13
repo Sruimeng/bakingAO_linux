@@ -179,6 +179,12 @@ struct Config
 		scene_maxdistance = 0;
 		use_ground_plane_blocker = true;
 		use_viewer = true;
+
+		uv_offset=1;//接缝像素的偏移
+		export_img_sigle=1;
+		normals_fix=0;
+
+
 		//VERTEX_FILTER_LEAST_SQUARES VERTEX_FILTER_AREA_BASED
 		filter_mode = bake::VERTEX_FILTER_AREA_BASED;
 		// parse arguments
@@ -211,6 +217,21 @@ struct Config
 				scene_maxdistance_scale = atof(argv[++i]);
 				//std::cout<<"scene_maxdistance_scale:  "<<scene_maxdistance_scale<<"\n"<<std::endl;
 			}
+			else if ((arg == "-u" || arg == "--uvoffset") && i + 1 < argc)
+			{
+				uv_offset = atoi(argv[++i]);
+				//std::cout<<"scene_maxdistance_scale:  "<<scene_maxdistance_scale<<"\n"<<std::endl;
+			}
+			else if ((arg == "-f" || arg == "--sigle_img_flag") && i + 1 < argc)
+			{
+				export_img_sigle = atoi(argv[++i]);
+				//std::cout<<"scene_maxdistance_scale:  "<<scene_maxdistance_scale<<"\n"<<std::endl;
+			}
+			else if ((arg == "-n" || arg == "--fix_normals") && i + 1 < argc)
+			{
+				export_img_sigle = atoi(argv[++i]);
+				//std::cout<<"scene_maxdistance_scale:  "<<scene_maxdistance_scale<<"\n"<<std::endl;
+			}
 		}
 	}
 
@@ -224,6 +245,9 @@ struct Config
 			<< "  -o  | --outfile <image_file(string)>	输出文件的地址\n"
 			<< "  -d  | --distance <offset(number)>	offset的数值\n"
 			<< "  -m  | --max <max_distance(muber)>	射线的的最大距离\n"
+			<< "  -u  | --uvoffset <uvoffset(number)> 接缝像素的偏移\n"
+			<< "  -f  | --sigle_img_flag <sigle_img_flag(number)> 是否输出为一张图片\n"
+			<< "  -n  | --fix_normals <fix_normals_flag(number)> 是否修复normals\n"
 			<< "........可能以后有其他的属性\n"
 			<< std::endl;
 
