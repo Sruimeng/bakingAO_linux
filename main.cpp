@@ -137,123 +137,7 @@ namespace
 
 } // namespace
 
-const size_t NUM_RAYS = 64;
-const size_t SAMPLES_PER_FACE = 3;
 
-struct Config
-{
-	std::string scene_filename;
-	size_t num_instances_per_mesh;
-	int num_samples;
-	int min_samples_per_face;
-	int num_rays;
-
-	bake::VertexFilterMode filter_mode;
-	float regularization_weight;
-	bool use_ground_plane_blocker;
-	bool use_viewer;
-	int ground_upaxis;
-	float ground_scale_factor;
-	float ground_offset_factor;
-	float scene_offset_scale;
-	float scene_maxdistance_scale;
-	float scene_maxdistance;
-	float scene_offset;
-	std::string output_filename;
-
-	Config(int argc, const char **argv)
-	{
-		// set defaults
-		num_instances_per_mesh = 1;
-		num_samples = 0; // default means determine from mesh
-
-		min_samples_per_face = SAMPLES_PER_FACE;
-		num_rays = NUM_RAYS;
-		ground_upaxis = 1;
-		ground_scale_factor = 10.0f;
-		ground_offset_factor = 0.03f;
-		scene_offset_scale = .001f;
-		scene_maxdistance_scale = 10.f;
-		regularization_weight = 0.1f;
-		scene_offset = 0; // must default to 0
-		scene_maxdistance = 0;
-		use_ground_plane_blocker = true;
-		use_viewer = true;
-
-		uv_offset=1;//接缝像素的偏移
-		export_img_sigle=1;
-		normals_fix=0;
-
-
-		//VERTEX_FILTER_LEAST_SQUARES VERTEX_FILTER_AREA_BASED
-		filter_mode = bake::VERTEX_FILTER_AREA_BASED;
-		// parse arguments
-		for (int i = 1; i < argc; ++i)
-		{
-			std::string arg(argv[i]);
-			if (arg.empty())
-				continue;
-
-			if (arg == "-h" || arg == "--help")
-			{
-				printUsageAndExit(argv[0]);
-			}
-			else if ((arg == "-i" || arg == "--infile") && i + 1 < argc)
-			{
-				scene_filename = argv[++i];
-			}
-			else if ((arg == "-o" || arg == "--outfile") && i + 1 < argc)
-			{
-				output_filename = argv[++i];
-				//std::cout<<"output_filename:  "<<output_filename<<"\n"<<std::endl;
-			}
-			else if ((arg == "-d" || arg == "--distance") && i + 1 < argc)
-			{
-				scene_offset_scale = atof(argv[++i]);
-				//std::cout<<"scene_offset_scale:  "<<scene_offset_scale<<"\n"<<std::endl;
-			}
-			else if ((arg == "-m" || arg == "--max") && i + 1 < argc)
-			{
-				scene_maxdistance_scale = atof(argv[++i]);
-				//std::cout<<"scene_maxdistance_scale:  "<<scene_maxdistance_scale<<"\n"<<std::endl;
-			}
-			else if ((arg == "-u" || arg == "--uvoffset") && i + 1 < argc)
-			{
-				uv_offset = atoi(argv[++i]);
-				//std::cout<<"scene_maxdistance_scale:  "<<scene_maxdistance_scale<<"\n"<<std::endl;
-			}
-			else if ((arg == "-f" || arg == "--sigle_img_flag") && i + 1 < argc)
-			{
-				export_img_sigle = atoi(argv[++i]);
-				//std::cout<<"scene_maxdistance_scale:  "<<scene_maxdistance_scale<<"\n"<<std::endl;
-			}
-			else if ((arg == "-n" || arg == "--fix_normals") && i + 1 < argc)
-			{
-				export_img_sigle = atoi(argv[++i]);
-				//std::cout<<"scene_maxdistance_scale:  "<<scene_maxdistance_scale<<"\n"<<std::endl;
-			}
-		}
-	}
-
-	void printUsageAndExit(const char *argv0)
-	{
-		std::cerr
-			<< "Usage  : " << argv0 << " [options]\n"
-			<< "App options:\n"
-			<< "  -h  | --help	帮助信息\n"
-			<< "  -i  | --infile <model_file(string)>	输入文件的地址\n"
-			<< "  -o  | --outfile <image_file(string)>	输出文件的地址\n"
-			<< "  -d  | --distance <offset(number)>	offset的数值\n"
-			<< "  -m  | --max <max_distance(muber)>	射线的的最大距离\n"
-			<< "  -u  | --uvoffset <uvoffset(number)> 接缝像素的偏移\n"
-			<< "  -f  | --sigle_img_flag <sigle_img_flag(number)> 是否输出为一张图片\n"
-			<< "  -n  | --fix_normals <fix_normals_flag(number)> 是否修复normals\n"
-			<< "........可能以后有其他的属性\n"
-			<< std::endl;
-
-		exit(1);
-	}
-};
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
@@ -270,7 +154,7 @@ int main(int argc, const char **argv)
 		//
 		// 默认参数设置
 		//
-		const Config config(argc, argv);
+		const bake::Config config(argc, argv);
 		//
 		// 计时工具
 		//
@@ -286,6 +170,17 @@ int main(int argc, const char **argv)
 		uautil::Scene scene;
 		uautil::loadScene(config.scene_filename, &scene);
 
+		float aabb_length = sqrtf((scene.bbox_max[0] - scene.bbox_min[0]) * (scene.bbox_max[0] - scene.bbox_min[0]) + (scene.bbox_max[1] - scene.bbox_min[1]) * (scene.bbox_max[1] - scene.bbox_min[1]) + (scene.bbox_max[2] - scene.bbox_min[2]) * (scene.bbox_max[2] - scene.bbox_min[2]));
+		//std::cerr << "aabb_length: " << aabb_length << "\n";
+		float aabb_scale = pow(0.1, 3);//0.1����
+		float final_length = aabb_length;
+		int pow_number = 1;
+		while (final_length > 1.0)
+		{
+			final_length = aabb_length * pow(0.1, pow_number);
+			pow_number++;
+		}
+		float final_scale = pow(0.1, config.scene_offset_scale+ pow_number - 1)*config.scene_offset;
 		printTimeElapsed(timer);
 		// Print scene stats
 		{
@@ -314,12 +209,12 @@ int main(int argc, const char **argv)
 		timer.reset();
 		timer.start();
 
-		std::vector<size_t> num_samples_per_instance(scene.m_num_meshes);
+	std::vector<size_t> num_samples_per_instance(scene.m_num_meshes);
 		bake::AOSamples ao_samples{};
 		size_t total_samples = bake::distribute_samples(scene,
-														config.min_samples_per_face, config.num_samples, &num_samples_per_instance[0]);
+			&config, &num_samples_per_instance[0]);
 		allocate_ao_samples(ao_samples, total_samples);
-		sample_instances(scene, &num_samples_per_instance[0], config.min_samples_per_face, ao_samples);
+		sample_instances(scene, &num_samples_per_instance[0], &config, ao_samples);
 		printTimeElapsed(timer);
 		std::cout << "\tTotal samples: " << total_samples << std::endl;
 
@@ -336,19 +231,11 @@ int main(int argc, const char **argv)
 		float scene_offset;
 		{
 			const float scene_scale = std::max(std::max(
-												   scene.bbox_max[0] - scene.bbox_min[0],
-												   scene.bbox_max[1] - scene.bbox_min[1]),
-											   scene.bbox_max[2] - scene.bbox_min[2]);
+				scene.bbox_max[0] - scene.bbox_min[0],
+				scene.bbox_max[1] - scene.bbox_min[1]),
+				scene.bbox_max[2] - scene.bbox_min[2]);
 			scene_maxdistance = scene_scale * config.scene_maxdistance_scale;
-			scene_offset = scene_scale * config.scene_offset_scale;
-			if (config.scene_offset)
-			{
-				scene_offset = config.scene_offset;
-			}
-			if (config.scene_maxdistance)
-			{
-				scene_maxdistance = config.scene_maxdistance;
-			}
+			scene_offset = scene_scale * final_scale;
 		}
 
 		std::vector<float> ao_values(total_samples);
@@ -385,7 +272,7 @@ int main(int argc, const char **argv)
 		timer.start();
 		std::cerr << "Save vertex ao ...              ";
 		std::cerr.flush();
-		bake::modelToView(config.output_filename, &scene, scene.m_num_meshes, vertex_ao, scene.bbox_min, scene.bbox_max, blocker_meshes);
+		bake::modelToView(&config,&scene, scene.m_num_meshes, vertex_ao, scene.bbox_min, scene.bbox_max, blocker_meshes);
 		printTimeElapsed(timer);
 
 		// Releasing some crap

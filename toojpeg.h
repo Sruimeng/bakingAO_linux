@@ -16,7 +16,7 @@
 // TooJpeg::writeJpeg(myOutput, mypixels, 1024, 768);
 
 #pragma once
-
+#include <iostream>
 namespace TooJpeg
 {
   // write one byte (to disk, memory, ...)
@@ -32,7 +32,7 @@ namespace TooJpeg
   // quality      - between 1 (worst) and 100 (best)
   // downsample   - if true then YCbCr 4:2:0 format is used (smaller size, minor quality loss) instead of 4:4:4, not relevant for grayscale
   // comment      - optional JPEG comment (0/NULL if no comment), must not contain ASCII code 0xFF
-  bool writeJpeg(WRITE_ONE_BYTE output, const void* pixels, unsigned short width, unsigned short height,
+  bool writeJpeg(std::string name, const void* pixels, unsigned short width, unsigned short height,
                  bool isRGB = true, unsigned char quality = 90, bool downsample = false, const char* comment = nullptr);
 } // namespace TooJpeg
 

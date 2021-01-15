@@ -6,6 +6,7 @@
 
 #include "toojpeg.h"
 
+#include <fstream>
 // - the "official" specifications: https://www.w3.org/Graphics/JPEG/itu-t81.pdf and https://www.w3.org/Graphics/JPEG/jfif3.pdf
 // - Wikipedia has a short description of the JFIF/JPEG file format: https://en.wikipedia.org/wiki/JPEG_File_Interchange_Format
 // - the popular STB Image library includes Jon's JPEG encoder as well: https://github.com/nothings/stb/blob/master/stb_image_write.h
@@ -23,6 +24,13 @@ using uint16_t = unsigned short;
 using  int16_t =          short;
 using  int32_t =          int; // at least four bytes
 
+
+std::ofstream myFile;
+// write a single byte compressed by tooJpeg
+void myOutput(unsigned char byte)
+{
+    myFile << byte;
+}
 // ////////////////////////////////////////
 // constants
 
@@ -346,9 +354,12 @@ void generateHuffmanTable(const uint8_t numCodes[16], const uint8_t* values, Bit
 namespace TooJpeg
 {
 // the only exported function ...
-bool writeJpeg(WRITE_ONE_BYTE output, const void* pixels_, unsigned short width, unsigned short height,
+bool writeJpeg(std::string name,const void* pixels_, unsigned short width, unsigned short height,
                bool isRGB, unsigned char quality_, bool downsample, const char* comment)
 {
+    //WRITE_ONE_BYTE output;
+    myFile.open(name, std::ios_base::out | std::ios_base::binary);
+    auto output = myOutput;
   // reject invalid pointers
   if (output == nullptr || pixels_ == nullptr)
     return false;
@@ -660,6 +671,7 @@ bool writeJpeg(WRITE_ONE_BYTE output, const void* pixels_, unsigned short width,
   // ///////////////////////////
   // EOI marker
   bitWriter << 0xFF << 0xD9; // this marker has no length, therefore I can't use addMarker()
+  myFile.close();
   return true;
 } // writeJpeg()
 } // namespace TooJpeg

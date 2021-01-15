@@ -92,12 +92,24 @@
 								<option id="nvcc.compiler.option.level.2146953229" name="Generate host debug information (-g)" superClass="nvcc.compiler.option.level"/>
 								<option defaultValue="nvcc.compiler.optimization.level.most" id="nvcc.compiler.optimization.level.1518005533" name="Optimization Level" superClass="nvcc.compiler.optimization.level" valueType="enumerated"/>
 								<option id="nvcc.compiler.pic.2081635700" name="Position Independent Code (-fPIC)" superClass="nvcc.compiler.pic"/>
-								<option id="nvcc.compiler.def.symbols.1675147130" superClass="nvcc.compiler.def.symbols" valueType="definedSymbols"/>
+								<option id="nvcc.compiler.def.symbols.1675147130" name="Defined symbols (-D)" superClass="nvcc.compiler.def.symbols"/>
+								<option id="nvcc.compiler.include.paths.482563681" superClass="nvcc.compiler.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/bakingAO}&quot;"/>
+								</option>
 								<inputType id="nvcc.compiler.input.cu.1091421033" superClass="nvcc.compiler.input.cu"/>
 								<inputType id="nvcc.compiler.input.cpp.1708349507" superClass="nvcc.compiler.input.cpp"/>
 								<inputType id="nvcc.compiler.input.c.650667586" superClass="nvcc.compiler.input.c"/>
 							</tool>
 							<tool id="nvcc.linker.base.402781260" name="NVCC Linker" superClass="nvcc.linker.base">
+								<option id="nvcc.linker.option.paths.288275512" name="Library search path (-L)" superClass="nvcc.linker.option.paths" valueType="libPaths">
+									<listOptionValue builtIn="false" value="/home/su/cuda-workspace/bakingAO/lib64"/>
+								</option>
+								<option id="nvcc.linker.option.libs.12356590" name="Libraries (-l)" superClass="nvcc.linker.option.libs" valueType="libs">
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="glfw"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="optix"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="optixu"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="optix_prime"/>
+								</option>
 								<inputType id="nvcc.linker.input.1118271124" superClass="nvcc.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -105,8 +117,8 @@
 							</tool>
 							<tool id="nvcc.archiver.base.928517361" name="NVCC Archiver" superClass="nvcc.archiver.base"/>
 							<tool id="com.nvidia.host.assembler.812641800" name="Host Assembler" superClass="com.nvidia.host.assembler">
-								<option id="gnu.both.asm.option.include.paths.1985132786" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/bakingAO/include}&quot;"/>
+								<option id="gnu.both.asm.option.include.paths.1985132786" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/bakingAO}&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.2026014433" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
@@ -115,6 +127,9 @@
 				</configuration>
 			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+			<storageModule moduleId="com.nvidia.cuda.ide.build.project.ICudaProjectConfiguration">
+				<editor-arch major="3" minor="0"/>
+			</storageModule>
 		</cconfiguration>
 	</storageModule>
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">

@@ -2,6 +2,7 @@
 
 
 #include <vector>
+#include <map>
 #include "optix/optixu/optixu_aabb_namespace.h"
 #include "optix/optixu/optixu_math_namespace.h"
 using namespace optix;
@@ -23,7 +24,11 @@ namespace uautil {
 
 		std::string                       name;
 		Matrix4x4 transform;
-		std::vector<int32_t>              material_idx;
+		int32_t             material_idx;
+		int32_t				texcoord_idx;
+		int32_t				mesh_idx;
+		int32_t				primitive_idx;
+		int32_t		image_name;
 		int32_t             num_triangles;  // Number of triangles
 		int32_t             num_vertices;   // Number of triangle vertices
 		float               bbox_min[3];    // Scene BBox
@@ -35,15 +40,19 @@ namespace uautil {
 		MeshBound        meshBound[3];
 	};
 
+
 	class Scene
 	{
 	public:
+		//区别材质
+		std::map<int, std::vector<int>> materials_map;
 		std::vector<unsigned char>			m_data;
 		std::vector<Mesh>   m_meshes;
 		float               bbox_min[3];    // Scene BBox
 		float               bbox_max[3];    //
 		std::size_t				 m_num_meshes;
 		Aabb                          m_scene_aabb;
+		int32_t aabb_scale;//整个模型原始数据的大小
 		private:
 	
 	};

@@ -1,5 +1,7 @@
 /.settings
 /.vscode
+/Release
+/lib64
 /Debug
 *.glb
 *.jpg

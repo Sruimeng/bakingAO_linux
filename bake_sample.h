@@ -28,8 +28,9 @@
 #pragma once
 #include "bake_api.h"
 #include "scene.h"
+#include "config.h"
 namespace bake
 {
-	size_t distribute_samples(const uautil::Scene& scene, size_t min_samples_per_triangle, size_t requested_num_samples, size_t* num_samples_per_instance);
-	void sample_instances(const uautil::Scene& scene, const size_t* num_samples_per_instance, size_t min_samples_per_triangle, AOSamples& ao_samples);
+	size_t distribute_samples(const uautil::Scene& scene, const Config* config, size_t* num_samples_per_instance);
+	void sample_instances(const uautil::Scene& scene, const size_t* num_samples_per_instance, const Config* config,  AOSamples& ao_samples);
 }

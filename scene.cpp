@@ -17,58 +17,58 @@
 namespace uautil {
 	namespace {
 		float makeFinalNumber(float x, float max, float min) {
-			if (min+max>0) {
-				return x  * (max - min) + min;
+			if (min + max > 0) {
+				return x * (max - min) + min;
 			}
-			else if (max+min == 0) {
+			else if (max + min == 0) {
 				if (x < 0) {
-					return -x ;
+					return -x;
 				}
 				else
 				{
-					return x ;
+					return x;
 				}
-				
+
 			}
 			else
 			{
 				if (max > 0) {
-					return (x ) * (max - min) + min;
+					return (x) * (max - min) + min;
 				}
-				else if(max<0)
+				else if (max < 0)
 				{
-					return (x ) * min - max;
+					return (x)*min - max;
 				}
 				else
 				{
-					return (x ) * (max - min);
+					return (x) * (max - min);
 				}
-				
+
 			}
-			
+
 		}
 
 		float normalizeNumber(float num, float max, float min, float box_max, float box_min) {
-			if ((max + min) > 0){
+			if ((max + min) > 0) {
 				auto temp = (max - min) / (box_max - box_min);
 				auto flag = max - temp;
 				return (num - flag) / temp;
 			}
 		}
 
-		float makeMeshMin(float x, float y, float z,float m) {
-			return std::fmaxf(std::fmaxf(x,z),std::fmaxf(y,m));
+		float makeMeshMin(float x, float y, float z, float m) {
+			return std::fmaxf(std::fmaxf(x, z), std::fmaxf(y, m));
 		}
 
 		float makeMeshMax(float x, float y, float z, float m) {
 			return std::fminf(std::fminf(x, z), std::fminf(y, m));
 		}
 
-		float makeMeshFloat2Min(float x, float y,  float m) {
+		float makeMeshFloat2Min(float x, float y, float m) {
 			return std::fminf(x, std::fminf(y, m));
 		}
 
-		float makeMeshFloat2Max(float x, float y,  float m) {
+		float makeMeshFloat2Max(float x, float y, float m) {
 			return std::fmaxf(x, std::fmaxf(y, m));
 		}
 
@@ -85,17 +85,36 @@ namespace uautil {
 
 		union Convert
 		{
-			unsigned char byte[4];
-			float real;
+			unsigned char byte2[2];
+			unsigned char byte4[4];
+			float f;
+			unsigned int i2;
+			unsigned int i4;
 		};
 
 		float makeRealFolat(unsigned char x, unsigned char y, unsigned char z, unsigned char w) {
 			Convert convert;
-			convert.byte[0] = x;
-			convert.byte[1] = y;
-			convert.byte[2] = z;
-			convert.byte[3] = w;
-			return convert.real;
+			convert.byte4[0] = x;
+			convert.byte4[1] = y;
+			convert.byte4[2] = z;
+			convert.byte4[3] = w;
+			return convert.f;
+		}
+
+		int makeRealInt(unsigned char x, unsigned char y) {
+			Convert convert;
+			convert.byte2[0] = x;
+			convert.byte2[1] = y;
+			return convert.i2;
+		}
+
+		int makeReal4Int(unsigned char x, unsigned char y, unsigned char z, unsigned char w) {
+			Convert convert;
+			convert.byte4[0] = x;
+			convert.byte4[1] = y;
+			convert.byte4[2] = z;
+			convert.byte4[3] = w;
+			return convert.i4;
 		}
 	}
 
@@ -119,7 +138,7 @@ namespace uautil {
 				if (type == 3) {
 					mesh->meshBound[type - 1].g_min.x = gltf_accessor.minValues[0];
 					mesh->meshBound[type - 1].g_min.y = gltf_accessor.minValues[1];
-						
+
 					mesh->meshBound[type - 1].g_max.x = gltf_accessor.maxValues[0];
 					mesh->meshBound[type - 1].g_max.y = gltf_accessor.maxValues[1];
 				}
@@ -132,7 +151,7 @@ namespace uautil {
 						gltf_accessor.maxValues[1],
 						gltf_accessor.maxValues[2]);
 				}
-				
+
 			}
 			else
 			{
@@ -145,7 +164,7 @@ namespace uautil {
 					mesh->meshBound[type - 1].g_min = make_float3(-1.0, -1.0, -1.0);
 				}
 			}
-			
+
 			mesh->meshBound[type - 1].m_min = 0;
 			mesh->meshBound[type - 1].m_max = 0;
 		}
@@ -167,30 +186,50 @@ namespace uautil {
 		switch (type)
 		{
 		case 0:
-			
-			for (size_t i = 0; i < length; i++)
-			{
-				int3 inde;
-				inde.x = index[byte * i]+ index[byte * i+1]*256;
-				inde.y = index[byte * i + elmt_byte_size]+ index[byte * i + elmt_byte_size + 1] * 256;
-				inde.z = index[byte * i + elmt_byte_size * 2]+ index[byte * i + elmt_byte_size *2 + 1] * 256;;
-				
-				mesh->trianglesArray.push_back(inde);
+
+			if (byte == 6) {
+				for (size_t i = 0; i < length; i++)
+				{
+					int3 inde;
+					/*inde.x = makeRealInt(index[byte * i], index[byte * i + 1]);
+					inde.y = makeRealInt(index[byte * i + elmt_byte_size], index[byte * i + elmt_byte_size + 1]);
+					inde.z = makeRealInt(index[byte * i + elmt_byte_size * 2], index[byte * i + elmt_byte_size * 2 + 1]);*/
+
+					inde.x = index[byte * i] + index[byte * i + 1] * 256;
+					inde.y = index[byte * i + elmt_byte_size] + index[byte * i + elmt_byte_size + 1] * 256;
+					inde.z = index[byte * i + elmt_byte_size * 2] + index[byte * i + elmt_byte_size * 2 + 1] * 256;;
+
+					mesh->trianglesArray.push_back(inde);
+				}
 			}
+			else if (byte == 12) {
+				for (size_t i = 0; i < length; i++)
+				{
+					int3 inde;
+					inde.x = makeReal4Int(index[byte * i], index[byte * i + 1], index[byte * i + 2], index[byte * i + 3]);
+
+					inde.y = makeReal4Int(index[byte * i + elmt_byte_size], index[byte * i + elmt_byte_size + 1], index[byte * i + elmt_byte_size + 2], index[byte * i + elmt_byte_size + 3]);
+
+					inde.z = makeReal4Int(index[byte * i + elmt_byte_size * 2], index[byte * i + 1 + elmt_byte_size * 2], index[byte * i + 2 + elmt_byte_size * 2], index[byte * i + 3 + elmt_byte_size * 2]);
+
+					mesh->trianglesArray.push_back(inde);
+				}
+			}
+
 			break;
 		case 1:
-			
+
 			for (size_t i = 0; i < length; i++)
 			{
 				float3 point;
 				//point.x = index[byte * i];
 				//point.y = index[byte * i + elmt_byte_size];
 				//point.z = index[byte * i + elmt_byte_size * 2];
-				point.x = makeRealFolat(index[byte * i], index[byte * i + 1], index[byte * i + 2] , index[byte * i + 3]);
+				point.x = makeRealFolat(index[byte * i], index[byte * i + 1], index[byte * i + 2], index[byte * i + 3]);
 
-				point.y = makeRealFolat(index[byte * i+ elmt_byte_size], index[byte * i + elmt_byte_size + 1], index[byte * i + elmt_byte_size + 2], index[byte * i + elmt_byte_size + 3]);
+				point.y = makeRealFolat(index[byte * i + elmt_byte_size], index[byte * i + elmt_byte_size + 1], index[byte * i + elmt_byte_size + 2], index[byte * i + elmt_byte_size + 3]);
 
-				point.z = makeRealFolat(index[byte * i + elmt_byte_size * 2], index[byte * i + 1+ elmt_byte_size * 2], index[byte * i + 2 + elmt_byte_size * 2], index[byte * i + 3+ elmt_byte_size * 2]);
+				point.z = makeRealFolat(index[byte * i + elmt_byte_size * 2], index[byte * i + 1 + elmt_byte_size * 2], index[byte * i + 2 + elmt_byte_size * 2], index[byte * i + 3 + elmt_byte_size * 2]);
 
 
 				/*point.x = makeFinalNumber(static_cast<float>(index[byte * i]),mesh->meshBound[type-1].g_max.x, mesh->meshBound[type - 1].g_min.x);
@@ -260,7 +299,7 @@ namespace uautil {
 					mesh->texcoordsArray[i].y = mesh->texcoordsArray[i].y*max;
 				}
 			}*/
-			
+
 			break;
 		}
 	}
@@ -339,8 +378,9 @@ namespace uautil {
 			const auto& gltf_mesh = model.meshes[gltf_node.mesh];
 			std::cerr << "Processing glTF mesh: '" << gltf_mesh.name << "'\n";
 			std::cerr << "\tNum mesh primitive groups: " << gltf_mesh.primitives.size() << std::endl;
-			for (auto& gltf_primitive : gltf_mesh.primitives)
+			for (size_t i = 0; i < gltf_mesh.primitives.size(); i++)
 			{
+				auto& gltf_primitive = gltf_mesh.primitives[i];
 				if (gltf_primitive.mode != TINYGLTF_MODE_TRIANGLES) // Ignore non-triangle meshes
 				{
 					std::cerr << "\tNon-triangle primitive: skipping\n";
@@ -348,13 +388,14 @@ namespace uautil {
 				}
 
 				Mesh mesh;
-				
 
-
+				mesh.mesh_idx = gltf_node.mesh;
+				mesh.primitive_idx = i;
 				mesh.name = gltf_mesh.name;
-				
+
 				bufferViewFromGLTF(model, scene, gltf_primitive.indices, 0, &mesh);
-				mesh.material_idx.push_back(gltf_primitive.material);
+
+				mesh.material_idx = gltf_primitive.material;
 				mesh.transform = node_xform;
 				mesh.num_triangles = mesh.trianglesArray.size();
 				std::cerr << "\t\tNum triangles: " << mesh.num_triangles << std::endl;
@@ -378,7 +419,7 @@ namespace uautil {
 					));
 				mesh.world_aabb = mesh.object_aabb;
 				mesh.world_aabb.transform(node_xform);
-				mesh.bbox_min[0]= pos_gltf_accessor.minValues[0];
+				mesh.bbox_min[0] = pos_gltf_accessor.minValues[0];
 				mesh.bbox_min[1] = pos_gltf_accessor.minValues[1];
 				mesh.bbox_min[2] = pos_gltf_accessor.minValues[2];
 				mesh.bbox_max[0] = pos_gltf_accessor.maxValues[0];
@@ -386,7 +427,7 @@ namespace uautil {
 				mesh.bbox_max[2] = pos_gltf_accessor.maxValues[2];
 
 
-				
+
 
 				auto normal_accessor_iter = gltf_primitive.attributes.find("NORMAL");
 				if (normal_accessor_iter != gltf_primitive.attributes.end())
@@ -401,6 +442,7 @@ namespace uautil {
 				}
 
 				auto texcoord_accessor_iter = gltf_primitive.attributes.find("TEXCOORD_0");
+				mesh.texcoord_idx = texcoord_accessor_iter->second;
 				if (texcoord_accessor_iter != gltf_primitive.attributes.end())
 				{
 					std::cerr << "\t\tHas texcoords: true\n";
@@ -427,198 +469,211 @@ namespace uautil {
 
 
 	}
-void loadScene(const std::string& filename, uautil::Scene* scene) {
-	tinygltf::Model model;
-	tinygltf::TinyGLTF loader;
-	std::string err;
-	std::string warn;
+	void loadScene(const std::string& filename, uautil::Scene* scene) {
+		tinygltf::Model model;
+		tinygltf::TinyGLTF loader;
+		std::string err;
+		std::string warn;
 
-	bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, filename);
-	if (!warn.empty())
-		std::cerr << "glTF WARNING: " << warn << std::endl;
-	if (!ret)
-	{
-		std::cerr << "Failed to load GLTF scene '" << filename << "': " << err << std::endl;
+		bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, filename);
+		if (!warn.empty())
+			std::cerr << "glTF WARNING: " << warn << std::endl;
+		if (!ret)
+		{
+			std::cerr << "Failed to load GLTF scene '" << filename << "': " << err << std::endl;
+		}
+
+		//
+		// Process buffer data first -- buffer views will reference this list
+		//
+		for (const auto& gltf_buffer : model.buffers)
+		{
+			const uint64_t buf_size = gltf_buffer.data.size();
+
+			auto data = gltf_buffer.data;
+			scene->m_data = gltf_buffer.data;
+		}
+		std::cerr << "Processing glTF buffer: " << "'\n"
+			<< "\tbyte size: " << scene->m_data.size() << "\n";
+		//����ע��Ϊ��������ļ��أ����������Ҫ��ȥ����
+		/*//
+		// Images -- just load all up front for simplicity
+		//
+		for (const auto& gltf_image : model.images)
+		{
+			std::cerr << "Processing image '" << gltf_image.name << "'\n"
+				<< "\t(" << gltf_image.width << "x" << gltf_image.height << ")x" << gltf_image.component << "\n"
+				<< "\tbits: " << gltf_image.bits << std::endl;
+
+			assert(gltf_image.component == 4);
+			assert(gltf_image.bits == 8 || gltf_image.bits == 16);
+
+			scene.addImage(
+				gltf_image.width,
+				gltf_image.height,
+				gltf_image.bits,
+				gltf_image.component,
+				gltf_image.image.data()
+			);
+		}
+
+		//
+		// Textures -- refer to previously loaded images
+		//
+		for (const auto& gltf_texture : model.textures)
+		{
+			if (gltf_texture.sampler == -1)
+			{
+				scene.addSampler(cudaAddressModeWrap, cudaAddressModeWrap, cudaFilterModeLinear, gltf_texture.source);
+				continue;
+			}
+
+			const auto& gltf_sampler = model.samplers[gltf_texture.sampler];
+
+			const cudaTextureAddressMode address_s = gltf_sampler.wrapS == GL_CLAMP_TO_EDGE ? cudaAddressModeClamp :
+				gltf_sampler.wrapS == GL_MIRRORED_REPEAT ? cudaAddressModeMirror :
+				cudaAddressModeWrap;
+			const cudaTextureAddressMode address_t = gltf_sampler.wrapT == GL_CLAMP_TO_EDGE ? cudaAddressModeClamp :
+				gltf_sampler.wrapT == GL_MIRRORED_REPEAT ? cudaAddressModeMirror :
+				cudaAddressModeWrap;
+			const cudaTextureFilterMode  filter = gltf_sampler.minFilter == GL_NEAREST ? cudaFilterModePoint :
+				cudaFilterModeLinear;
+			scene.addSampler(address_s, address_t, filter, gltf_texture.source);
+		}
+
+		//
+		// Materials
+		//
+		for (auto& gltf_material : model.materials)
+		{
+			std::cerr << "Processing glTF material: '" << gltf_material.name << "'\n";
+			MaterialData::Pbr mtl;
+
+			{
+				const auto base_color_it = gltf_material.values.find("baseColorFactor");
+				if (base_color_it != gltf_material.values.end())
+				{
+					const tinygltf::ColorValue c = base_color_it->second.ColorFactor();
+					mtl.base_color = make_float4_from_double(c[0], c[1], c[2], c[3]);
+					std::cerr
+						<< "\tBase color: ("
+						<< mtl.base_color.x << ", "
+						<< mtl.base_color.y << ", "
+						<< mtl.base_color.z << ")\n";
+				}
+				else
+				{
+					std::cerr << "\tUsing default base color factor\n";
+				}
+			}
+
+			{
+				const auto base_color_it = gltf_material.values.find("baseColorTexture");
+				if (base_color_it != gltf_material.values.end())
+				{
+					std::cerr << "\tFound base color tex: " << base_color_it->second.TextureIndex() << "\n";
+					mtl.base_color_tex = scene.getSampler(base_color_it->second.TextureIndex());
+				}
+				else
+				{
+					std::cerr << "\tNo base color tex\n";
+				}
+			}
+
+			{
+				const auto roughness_it = gltf_material.values.find("roughnessFactor");
+				if (roughness_it != gltf_material.values.end())
+				{
+					mtl.roughness = static_cast<float>(roughness_it->second.Factor());
+					std::cerr << "\tRougness:  " << mtl.roughness << "\n";
+				}
+				else
+				{
+					std::cerr << "\tUsing default roughness factor\n";
+				}
+			}
+
+			{
+				const auto metallic_it = gltf_material.values.find("metallicFactor");
+				if (metallic_it != gltf_material.values.end())
+				{
+					mtl.metallic = static_cast<float>(metallic_it->second.Factor());
+					std::cerr << "\tMetallic:  " << mtl.metallic << "\n";
+				}
+				else
+				{
+					std::cerr << "\tUsing default metallic factor\n";
+				}
+			}
+
+			{
+				const auto metallic_roughness_it = gltf_material.values.find("metallicRoughnessTexture");
+				if (metallic_roughness_it != gltf_material.values.end())
+				{
+					std::cerr << "\tFound metallic roughness tex: " << metallic_roughness_it->second.TextureIndex() << "\n";
+					mtl.metallic_roughness_tex = scene.getSampler(metallic_roughness_it->second.TextureIndex());
+				}
+				else
+				{
+					std::cerr << "\t No metallic roughness tex\n";
+				}
+			}
+
+			{
+				const auto normal_it = gltf_material.additionalValues.find("normalTexture");
+				if (normal_it != gltf_material.additionalValues.end())
+				{
+					std::cerr << "\tFound normal color tex: " << normal_it->second.TextureIndex() << "\n";
+					mtl.normal_tex = scene.getSampler(normal_it->second.TextureIndex());
+				}
+				else
+				{
+					std::cerr << "\tNo normal tex\n";
+				}
+			}
+
+			scene.addMaterial(mtl);
+		}*/
+
+		//
+		// Process nodes
+		//
+		std::vector<int32_t> root_nodes(model.nodes.size(), 1);
+		for (auto& gltf_node : model.nodes)
+			for (int32_t child : gltf_node.children)
+				root_nodes[child] = 0;
+
+		for (size_t i = 0; i < root_nodes.size(); ++i)
+		{
+			if (!root_nodes[i])
+				continue;
+			auto& gltf_node = model.nodes[i];
+			processGLTFNode(scene, model, gltf_node, Matrix4x4::identity());
+		}
+
+		scene->m_num_meshes = scene->m_meshes.size();
+		scene->m_scene_aabb.invalidate();
+		for (size_t i = 0; i < scene->m_meshes.size(); i++) {
+			scene->m_scene_aabb.include(scene->m_meshes[i].object_aabb);
+			auto materials_map = &scene->materials_map;
+			auto mesh = scene->m_meshes[i];
+			if (materials_map->find(mesh.texcoord_idx) != materials_map->end()) {
+				materials_map->find(mesh.texcoord_idx)->second.push_back(i);
+			}
+			else {
+				std::vector<int> meshes;
+				meshes.push_back(i);
+				materials_map->insert(std::pair<int, std::vector<int>>(mesh.texcoord_idx, meshes));
+			}
+		}
+
+		scene->bbox_min[0] = scene->m_scene_aabb.m_min.x;
+		scene->bbox_min[1] = scene->m_scene_aabb.m_min.y;
+		scene->bbox_min[2] = scene->m_scene_aabb.m_min.z;
+		scene->bbox_max[0] = scene->m_scene_aabb.m_max.x;
+		scene->bbox_max[1] = scene->m_scene_aabb.m_max.y;
+		scene->bbox_max[2] = scene->m_scene_aabb.m_max.z;
 	}
-
-	//
-	// Process buffer data first -- buffer views will reference this list
-	//
-	for (const auto& gltf_buffer : model.buffers)
-	{
-		const uint64_t buf_size = gltf_buffer.data.size();
-		std::cerr << "Processing glTF buffer '" << gltf_buffer.name << "'\n"
-			<< "\tbyte size: " << buf_size << "\n"
-			<< "\turi      : " << gltf_buffer.uri << std::endl;
-		auto data = gltf_buffer.data;
-		scene->m_data = gltf_buffer.data;
-	}
-	//����ע��Ϊ��������ļ��أ����������Ҫ��ȥ����
-	/*//
-	// Images -- just load all up front for simplicity
-	//
-	for (const auto& gltf_image : model.images)
-	{
-		std::cerr << "Processing image '" << gltf_image.name << "'\n"
-			<< "\t(" << gltf_image.width << "x" << gltf_image.height << ")x" << gltf_image.component << "\n"
-			<< "\tbits: " << gltf_image.bits << std::endl;
-
-		assert(gltf_image.component == 4);
-		assert(gltf_image.bits == 8 || gltf_image.bits == 16);
-
-		scene.addImage(
-			gltf_image.width,
-			gltf_image.height,
-			gltf_image.bits,
-			gltf_image.component,
-			gltf_image.image.data()
-		);
-	}
-
-	//
-	// Textures -- refer to previously loaded images
-	//
-	for (const auto& gltf_texture : model.textures)
-	{
-		if (gltf_texture.sampler == -1)
-		{
-			scene.addSampler(cudaAddressModeWrap, cudaAddressModeWrap, cudaFilterModeLinear, gltf_texture.source);
-			continue;
-		}
-
-		const auto& gltf_sampler = model.samplers[gltf_texture.sampler];
-
-		const cudaTextureAddressMode address_s = gltf_sampler.wrapS == GL_CLAMP_TO_EDGE ? cudaAddressModeClamp :
-			gltf_sampler.wrapS == GL_MIRRORED_REPEAT ? cudaAddressModeMirror :
-			cudaAddressModeWrap;
-		const cudaTextureAddressMode address_t = gltf_sampler.wrapT == GL_CLAMP_TO_EDGE ? cudaAddressModeClamp :
-			gltf_sampler.wrapT == GL_MIRRORED_REPEAT ? cudaAddressModeMirror :
-			cudaAddressModeWrap;
-		const cudaTextureFilterMode  filter = gltf_sampler.minFilter == GL_NEAREST ? cudaFilterModePoint :
-			cudaFilterModeLinear;
-		scene.addSampler(address_s, address_t, filter, gltf_texture.source);
-	}
-
-	//
-	// Materials
-	//
-	for (auto& gltf_material : model.materials)
-	{
-		std::cerr << "Processing glTF material: '" << gltf_material.name << "'\n";
-		MaterialData::Pbr mtl;
-
-		{
-			const auto base_color_it = gltf_material.values.find("baseColorFactor");
-			if (base_color_it != gltf_material.values.end())
-			{
-				const tinygltf::ColorValue c = base_color_it->second.ColorFactor();
-				mtl.base_color = make_float4_from_double(c[0], c[1], c[2], c[3]);
-				std::cerr
-					<< "\tBase color: ("
-					<< mtl.base_color.x << ", "
-					<< mtl.base_color.y << ", "
-					<< mtl.base_color.z << ")\n";
-			}
-			else
-			{
-				std::cerr << "\tUsing default base color factor\n";
-			}
-		}
-
-		{
-			const auto base_color_it = gltf_material.values.find("baseColorTexture");
-			if (base_color_it != gltf_material.values.end())
-			{
-				std::cerr << "\tFound base color tex: " << base_color_it->second.TextureIndex() << "\n";
-				mtl.base_color_tex = scene.getSampler(base_color_it->second.TextureIndex());
-			}
-			else
-			{
-				std::cerr << "\tNo base color tex\n";
-			}
-		}
-
-		{
-			const auto roughness_it = gltf_material.values.find("roughnessFactor");
-			if (roughness_it != gltf_material.values.end())
-			{
-				mtl.roughness = static_cast<float>(roughness_it->second.Factor());
-				std::cerr << "\tRougness:  " << mtl.roughness << "\n";
-			}
-			else
-			{
-				std::cerr << "\tUsing default roughness factor\n";
-			}
-		}
-
-		{
-			const auto metallic_it = gltf_material.values.find("metallicFactor");
-			if (metallic_it != gltf_material.values.end())
-			{
-				mtl.metallic = static_cast<float>(metallic_it->second.Factor());
-				std::cerr << "\tMetallic:  " << mtl.metallic << "\n";
-			}
-			else
-			{
-				std::cerr << "\tUsing default metallic factor\n";
-			}
-		}
-
-		{
-			const auto metallic_roughness_it = gltf_material.values.find("metallicRoughnessTexture");
-			if (metallic_roughness_it != gltf_material.values.end())
-			{
-				std::cerr << "\tFound metallic roughness tex: " << metallic_roughness_it->second.TextureIndex() << "\n";
-				mtl.metallic_roughness_tex = scene.getSampler(metallic_roughness_it->second.TextureIndex());
-			}
-			else
-			{
-				std::cerr << "\tNo metallic roughness tex\n";
-			}
-		}
-
-		{
-			const auto normal_it = gltf_material.additionalValues.find("normalTexture");
-			if (normal_it != gltf_material.additionalValues.end())
-			{
-				std::cerr << "\tFound normal color tex: " << normal_it->second.TextureIndex() << "\n";
-				mtl.normal_tex = scene.getSampler(normal_it->second.TextureIndex());
-			}
-			else
-			{
-				std::cerr << "\tNo normal tex\n";
-			}
-		}
-
-		scene.addMaterial(mtl);
-	}*/
-
-	//
-	// Process nodes
-	//
-	std::vector<int32_t> root_nodes(model.nodes.size(), 1);
-	for (auto& gltf_node : model.nodes)
-		for (int32_t child : gltf_node.children)
-			root_nodes[child] = 0;
-
-	for (size_t i = 0; i < root_nodes.size(); ++i)
-	{	
-		if (!root_nodes[i])
-			continue;
-		auto& gltf_node = model.nodes[i];
-		processGLTFNode(scene, model, gltf_node, Matrix4x4::identity());
-	}
-	scene->m_num_meshes = scene->m_meshes.size();
-	scene->m_scene_aabb.invalidate();
-	for (const auto mesh : scene->m_meshes)
-		scene->m_scene_aabb.include(mesh.object_aabb);
-	scene->bbox_min[0] = scene->m_scene_aabb.m_min.x;
-	scene->bbox_min[1] = scene->m_scene_aabb.m_min.y;
-	scene->bbox_min[2] = scene->m_scene_aabb.m_min.z;
-	scene->bbox_max[0] = scene->m_scene_aabb.m_max.x;
-	scene->bbox_max[1] = scene->m_scene_aabb.m_max.y;
-	scene->bbox_max[2] = scene->m_scene_aabb.m_max.z;
-}
 
 
 }

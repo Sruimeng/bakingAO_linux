@@ -133,7 +133,6 @@ namespace
 	}
 }
 
-
 void bake::ao_optix_prime(
 	std::vector<uautil::Mesh> blockers,
 	const bake::AOSamples& ao_samples,
@@ -161,7 +160,7 @@ void bake::ao_optix_prime(
 	//create_instances(ctx, blockers, true, allocated_vertex_buffers, allocated_index_buffers, models, prime_instances, transforms);
 	create_instances(ctx, blockers, true, allocated_vertex_buffers, allocated_index_buffers, models, prime_instances, transforms);
 	create_instances(ctx, scene.m_meshes, true, allocated_vertex_buffers, allocated_index_buffers, models, prime_instances, transforms);
-	
+
 	auto scene_model = ctx->createModel();
 	scene_model->setInstances(prime_instances.size(), RTP_BUFFER_TYPE_HOST, &prime_instances[0],
 		RTP_BUFFER_FORMAT_TRANSFORM_FLOAT4x4, RTP_BUFFER_TYPE_HOST, &transforms[0]);
@@ -210,7 +209,7 @@ void bake::ao_optix_prime(
 		query->setRays(rays.count(), myRay::format, rays.type(), rays.ptr());
 		query->setHits(hits.count(), HitInstancing::format, hits.type(), hits.ptr());
 		setup_timer.stop();
-		
+
 		for (int i = 0; i < sqrt_rays_per_sample; ++i) {
 			for (int j = 0; j < sqrt_rays_per_sample; ++j)
 			{
@@ -219,7 +218,7 @@ void bake::ao_optix_prime(
 				// Host or device, depending on Prime context type.  For a host context, which we assume is rare, Prime will copy the rays from device to host.
 				ACCUM_TIME(query_timer, query->execute(0));
 
-				ACCUM_TIME(updateao_timer, update_ao_device((int)num_samples, hits.ptr(), ao.ptr(),scene_maxdistance-scene_offset));
+				ACCUM_TIME(updateao_timer, update_ao_device((int)num_samples, hits.ptr(), ao.ptr(), scene_maxdistance - scene_offset));
 			}
 		}
 		auto distance = hits.hostPtr();

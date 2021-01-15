@@ -26,17 +26,18 @@ __global__ void generate_rays_kernel(
 	const float3* sample_positions,
 	myRay* rays)
 {
-	int idx = threadIdx.x + blockIdx.x*blockDim.x;
+	int idx = threadIdx.x + blockIdx.x * blockDim.x;
 	if (idx >= num_samples)
 		return;
 
-	const unsigned int tea_seed = (base_seed << 16) | (px*sqrt_passes + py);
+	const unsigned int tea_seed = (base_seed << 16) | (px * sqrt_passes + py);
 	unsigned seed = tea<2>(tea_seed, idx);
 	//unsigned seed = 1;
 	const float3 sample_norm = sample_normals[idx];
 	const float3 sample_face_norm = sample_face_normals[idx];
 	const float3 sample_pos = sample_positions[idx];
-	const float3 ray_origin = sample_pos+ scene_offset * sample_norm;
+	const float3 ray_origin = sample_pos+scene_offset * sample_norm;
+	//const float3 ray_origin = sample_pos ;
 	optix::Onb onb(sample_norm);
 
 	float3 ray_dir;
@@ -55,17 +56,17 @@ __global__ void generate_rays_kernel(
 		u1 = rnd(seed);
 		//u0 = (static_cast<float>(px) + rnd(seed)) / static_cast<float>(sqrt_passes);
 		//u1 = (static_cast<float>(py) + rnd(seed)) / static_cast<float>(sqrt_passes);
-	}while (j < 64 && optix::dot(ray_dir, sample_face_norm) <= 0.0f);
+	} while (j < 64 && optix::dot(ray_dir, sample_face_norm) <= 0.0f);
 	// rays[idx].origin = ray_origin;
 	// rays[idx].tmin = 0.0f;
 	// rays[idx].direction = -ray_dir;
 	//rays[idx].tmax = scene_maxdistance - scene_offset;
 #if 1
 	// Reverse shadow rays for better performance
-	rays[idx].origin = ray_origin  ;
+	rays[idx].origin = ray_origin;
 	rays[idx].tmin = 0.0f;
 	rays[idx].direction = ray_dir;
-	rays[idx].tmax = scene_maxdistance - scene_offset;
+	rays[idx].tmax = scene_maxdistance ;
 	//rays[idx].tmax = scene_maxdistance*scene_offset;  // possible loss of precision here (bignum - smallnum)
 
 #else
@@ -73,7 +74,7 @@ __global__ void generate_rays_kernel(
 	rays[idx].origin = -ray_origin;
 	rays[idx].tmin = scene_offset;
 	rays[idx].direction = -ray_dir;
-	rays[idx].tmax = scene_maxdistance - scene_offset; 
+	rays[idx].tmax = scene_maxdistance ;
 #endif
 }
 
@@ -82,7 +83,7 @@ __host__ void bake::generate_rays_device(unsigned int seed, int px, int py, int 
 	const int block_size = 512;
 	const int block_count = idiv_ceil((int)ao_samples.num_samples, block_size);
 
-	generate_rays_kernel << <block_count, block_size >> >(
+	generate_rays_kernel << <block_count, block_size >> > (
 		seed,
 		px,
 		py,
@@ -108,12 +109,12 @@ __global__ void update_ao_kernel(int num_samples, HitInstancing* hit_data, float
 	float distance = hit_data[idx].t;
 
 	ao_data[idx] += distance > 0.0? 1.0f : 0.0f;
-}	
+}
 
 // Precondition: ao output initialized to 0 before first pass
 __host__ void bake::update_ao_device(int num_samples, HitInstancing* hits, float* ao, float maxdistance)
 {
 	int block_size = 512;
 	int block_count = idiv_ceil(num_samples, block_size);
-	update_ao_kernel << <block_count, block_size >> >(num_samples, hits, ao, maxdistance);
+	update_ao_kernel << <block_count, block_size >> > (num_samples, hits, ao, maxdistance);
 }
